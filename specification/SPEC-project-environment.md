@@ -210,7 +210,7 @@ Contracts for Bearer issuance are detailed in [`SPEC-request-bearer-token.md`](.
 
 | Method | Path | Auth | Role |
 |--------|------|------|------|
-| `GET` | `/api/auth/getBearerToken` | HTTP Basic | Returns **raw JWT only** (`text/plain`); see feature SPEC |
+| `GET` | `/api/auth/getBearerToken` | Public (no credentials) | Raw JWT from random UUID + date/time; see feature SPEC |
 | `GET` | `/actuator/health` | Public | Health |
 | `GET` | `/actuator/info` | Public | Info |
 
@@ -265,8 +265,8 @@ cd heavy-rental-spring-rest-api
 # Health
 curl -s http://localhost:8080/actuator/health
 
-# Bearer token (HTTP Basic → plain JWT)
-TOKEN=$(curl -s -u 'admin:<password>' http://localhost:8080/api/auth/getBearerToken)
+# Bearer token (random UUID + date/time → plain JWT)
+TOKEN=$(curl -s http://localhost:8080/api/auth/getBearerToken)
 echo "$TOKEN"
 
 # Protected call (when a protected resource exists)
@@ -351,5 +351,6 @@ Unless a dedicated SDD says otherwise:
 |---------|------|--------|
 | 1.0.0 | 2026-08-02 | Initial as-built environment context: Spring Boot 4.1 / Java 21 / WAR, Postgres on `db`, JWT security, SDD conventions, no Compose |
 | 1.1.0 | 2026-08-02 | Auth API reduced to `GET /api/auth/getBearerToken` only (register/login/logout/user removed) |
+| 1.2.0 | 2026-08-02 | getBearerToken mints JWT from random UUID + date/time (no Basic credentials) |
 
 When changing stack, database strategy, packaging, default security model, or SDD file locations, bump this table and notify dependent feature specs.
