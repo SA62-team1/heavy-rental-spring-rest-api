@@ -4,10 +4,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -29,23 +26,26 @@ public class JwtService {
 		this.jwtProperties = jwtProperties;
 	}
 
-	public Jwt generateToken(Authentication authentication) {
-		Instant now = Instant.now();
-		Instant expiresAt = now.plusSeconds(jwtProperties.expirationMinutes() * 60);
-
-		// Keep only application roles (exclude internal authorities like FACTOR_PASSWORD)
-		List<String> roles = authentication.getAuthorities().stream()
-				.map(GrantedAuthority::getAuthority)
-				.filter(authority -> authority.startsWith("ROLE_"))
-				.collect(Collectors.toList());
+	/**
+	 * Issue a JWT whose subject is a random UUID and which records {@code generatedAt}.
+	 *
+	 * @param subject     typically a random UUID string
+	 * @param roles       application roles (e.g. {@code ROLE_USER})
+	 * @param generatedAt date/time used when the token was minted
+	 */
+	public Jwt generateToken(String subject, List<String> roles, Instant generatedAt) {
+		Instant issuedAt = generatedAt != null ? generatedAt : Instant.now();
+		Instant expiresAt = issuedAt.plusSeconds(jwtProperties.expirationMinutes() * 60);
+		List<String> safeRoles = roles != null ? List.copyOf(roles) : List.of();
 
 		JwtClaimsSet claims = JwtClaimsSet.builder()
 				.id(UUID.randomUUID().toString())
 				.issuer(jwtProperties.issuer())
-				.issuedAt(now)
+				.issuedAt(issuedAt)
 				.expiresAt(expiresAt)
-				.subject(authentication.getName())
-				.claim("roles", roles)
+				.subject(subject)
+				.claim("roles", safeRoles)
+				.claim("generatedAt", issuedAt.toString())
 				.build();
 
 		JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();

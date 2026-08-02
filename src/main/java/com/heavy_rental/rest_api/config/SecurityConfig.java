@@ -139,7 +139,7 @@ public class SecurityConfig {
 				Map.of(
 						"error", "unauthorized",
 						"message",
-						"Authentication required. Obtain a token via GET /api/auth/getBearerToken (HTTP Basic), then send Authorization: Bearer <token>."));
+						"Authentication required. Obtain a token via GET /api/auth/getBearerToken, then send Authorization: Bearer <token>."));
 	}
 
 	@Bean
